@@ -166,7 +166,27 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\bitboard.h"
+			>
+		</File>
+		<File
+			RelativePath=".\checksum.h"
+			>
+		</File>
+		<File
+			RelativePath=".\data.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\data.h"
+			>
+		</File>
+		<File
 			RelativePath=".\main.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\test.h"
 			>
 		</File>
 	</Files>
