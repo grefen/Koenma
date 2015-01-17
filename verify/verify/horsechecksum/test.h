@@ -351,4 +351,55 @@ void test_speed()
 	getchar();
 
 }
+
+void test_memcpy()
+{
+	int a,b,c;
+	int d[3],e[3];
+
+	const __int64 count = 99999999999;
+
+	clock_t t = clock();
+	for (__int64 i = 0; i < count; ++i)
+	{
+		a = b;
+		b = c;
+		c = a;
+	}
+	printf("time %d\n",clock()-t);
+
+
+	t = clock();
+	for (__int64 i = 0; i < count; ++i)
+	{
+		memcpy(d, e, 12);
+	}
+	printf("time %d\n",clock()-t);
+	getchar();
+}
+void test_memcmp()
+{
+	int a,b,c;
+	int d[3],e[3];
+
+	const __int64 count = 99999999999;
+
+	clock_t t = clock();
+	for (__int64 i = 0; i < count; ++i)
+	{
+		a == b;
+		b == c;
+		c == a;
+	}
+	printf("time %d\n",clock()-t);
+
+
+	t = clock();
+	for (__int64 i = 0; i < count; ++i)
+	{
+		memcmp(d, e, 12);
+	}
+	printf("time %d\n",clock()-t);
+	getchar();
+}
 #endif
