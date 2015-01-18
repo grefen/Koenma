@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "horsechecksum", "horsecheck
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotatebitboardchecksum", "rotatebitboardchecksum\rotatebitboardchecksum.vcproj", "{5D14021F-A9AE-435A-B333-684D3F06FE5C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lookupforimagic", "lookupforimagic\lookupforimagic.vcproj", "{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{5D14021F-A9AE-435A-B333-684D3F06FE5C}.Debug|Win32.Build.0 = Debug|Win32
 		{5D14021F-A9AE-435A-B333-684D3F06FE5C}.Release|Win32.ActiveCfg = Release|Win32
 		{5D14021F-A9AE-435A-B333-684D3F06FE5C}.Release|Win32.Build.0 = Release|Win32
+		{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}.Debug|Win32.Build.0 = Debug|Win32
+		{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}.Release|Win32.ActiveCfg = Release|Win32
+		{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
