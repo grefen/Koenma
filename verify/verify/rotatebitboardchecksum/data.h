@@ -64,6 +64,7 @@ extern Bitboard RookAttackMask[SQUARE_NB];
 extern Bitboard RookAttackToR0[SQUARE_NB][128];
 extern Bitboard RookAttackToRL90[SQUARE_NB][256];
 
+extern Bitboard KnightAttackMask[SQUARE_NB];
 extern Bitboard KnightAttackTo[SQUARE_NB][256];
 extern Bitboard KnightLeg[SQUARE_NB];
 extern Bitboard KnightLegRL90[SQUARE_NB];
@@ -134,6 +135,15 @@ inline bool square_same_color(Square s1, Square s2){
 //inline Bitboard& operator^=(Bitboard& b, Square s) {
 //	return b ^= SquareBB[s];
 //}
+
+
+inline bool bitboard_and_square(const Bitboard& b, Square s){
+    
+	return (b.bb[0]&SquareBB[s].bb[0])||(b.bb[1]&SquareBB[s].bb[1])||(b.bb[2]&SquareBB[s].bb[2]);
+}
+inline bool bitboard_and_bitboard(const Bitboard& a,const Bitboard& b){
+	return (a.bb[0]&b.bb[0])||(a.bb[1]&b.bb[1])||(a.bb[2]&b.bb[2]);
+}
 
 inline Bitboard operator&(Bitboard b, Square s) {
 	return b & SquareBB[s];

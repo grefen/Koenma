@@ -15,6 +15,7 @@ Bitboard RookAttackMask[SQUARE_NB];
 Bitboard RookAttackToR0[SQUARE_NB][128];
 Bitboard RookAttackToRL90[SQUARE_NB][256];
 
+Bitboard KnightAttackMask[SQUARE_NB];
 Bitboard KnightAttackTo[SQUARE_NB][256];
 Bitboard KnightLeg[SQUARE_NB];
 Bitboard KnightLegRL90[SQUARE_NB];
@@ -381,7 +382,11 @@ void init_data(){
 							{
 								KnightAttackTo[s][i] |= SquareBB[to];//i是用旋转棋盘计算的checksum
 							}
+
+							
 						}
+
+						KnightAttackMask[s] |= SquareBB[to];//无需顾虑马腿问题
 					}
 				}
 			}

@@ -64,18 +64,19 @@ std::string move_to_chinese(const Position& pos, Move m)
 
 static bool move_is_legal(Position& pos, ExtMove move)
 {
-
+    //return true;
 	//
 	//bool legal;
-	//
+	
 	//undo_t undo[1];
 	//pos.do_move(move.move, undo);
 
- //   legal = !pos.in_check(~pos.side_to_move());
+    //legal = !pos.in_check(~pos.side_to_move());
 
 	//pos.undo_move(move.move, undo);
 
 	//return legal;
+
 
 	
 	Move m = move.move;
@@ -88,30 +89,13 @@ static bool move_is_legal(Position& pos, ExtMove move)
 	assert(color_of(pos.piece_moved(m)) == us);
 	assert(pos.piece_on(pos.king_square(us)) == make_piece(us, KING));
 
-	PieceType pt = type_of(pos.piece_on(from));
+	PieceType pfr = type_of(pos.piece_on(from));
+	PieceType pto= type_of(pos.piece_on(to));
 
 	Bitboard pawns   = pos.pieces(~us, PAWN);
 	Bitboard knights = pos.pieces(~us, KNIGHT);
 	Bitboard cannons = pos.pieces(~us, CANNON);
 	Bitboard rooks = pos.pieces(~us, ROOK);
-	if(pawns & to)
-	{
-		pawns ^= to;
-	}
-	else if(knights & to)
-	{
-
-		knights ^= to;
-	}
-	else if(cannons & to)
-	{
-		cannons ^= to;
-	}
-	else if(rooks & to)
-	{
-
-		rooks ^= to;
-	}
 
 	Bitboard  occ    = pos.pieces();
 	Bitboard  occl90 = pos.piecesl90();
@@ -119,7 +103,7 @@ static bool move_is_legal(Position& pos, ExtMove move)
 	occl90 ^= square_rotate_l90(from);
 	occ    ^= from;
 
-	if(type_of(pos.piece_on(to)) == NO_PIECE_TYPE)
+	if(pto == NO_PIECE_TYPE)
 	{
 		occl90 ^= square_rotate_l90(to);
 		occ    ^= to;
@@ -129,14 +113,35 @@ static bool move_is_legal(Position& pos, ExtMove move)
 	if(ksq == from)
 		ksq = to;
 
-	if((cannon_control_bb(ksq, occ,occl90) & cannons)) return false;
-	if((rook_attacks_bb(ksq,occ,occl90)& rooks) ) return false;
-	if((knight_attacks_from(ksq, occ,occl90)&knights) ) return false;
+	if (pto != NO_PIECE_TYPE)
+	{
+		switch(pto)
+		{
+		case PAWN:
+           pawns ^= to;
+		   break;
+		case KNIGHT:
+           knights ^= to;
+		   break;
+		case ROOK:
+           rooks ^= to;
+		    break;
+		case CANNON:
+           cannons ^= to;
+            break;
+		}
+	}
+
+
+
+	if((RookAttackMask[ksq]& cannons) &&(cannon_control_bb(ksq, occ,occl90) & cannons)) return false;
+	if((RookAttackMask[ksq]& rooks) && (rook_attacks_bb(ksq,occ,occl90)& rooks) ) return false;
+	if((KnightAttackMask[ksq]&knights) && (knight_attacks_from(ksq, occ,occl90)&knights) ) return false;
 	if((pawn_attacks_from(~us,ksq) & pawns) ) return false;
 
-	if((rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
+	if((RookAttackMask[ksq]& pos.king_square(~us)) && (rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
 
-
+	
 	return true;
 }
 
