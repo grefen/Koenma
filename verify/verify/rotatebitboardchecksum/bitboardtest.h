@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <math.h>
 #include <time.h>
 #include "bitboard.h"
 #include "data.h"
@@ -161,19 +162,31 @@ void test_position(FILE *fp)
 uint64_t do_perft(Position& pos, int depth);
 void test_perft()
 {
-    std::string StartFen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1";
-	Position pos;
-	pos.set(StartFen);
+	do 
+	{
+		char d[2] = {0};
+		d[0] = getchar();
+        int depth = atoi(d);
+		
+		
+		std::string StartFen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1";
+		Position pos;
+		pos.set(StartFen);
 
-    clock_t t = clock();
+		clock_t t = clock();
 
-    uint64_t total = do_perft(pos, 4);
+		uint64_t total = do_perft(pos, depth);
 
-	printf("nodes: %I64d, time:  %d",total, clock()-t);
+		printf("nodes: %I64d, time:  %d\n",total, clock()-t);
+
+	} while (true);
+
 }
 
 uint64_t do_perft(Position& pos, int depth)
 {
+	if(depth < 0) return 0;
+	
 	MoveList list;
 	gen_legal_moves(pos, &list);
 
@@ -182,7 +195,7 @@ uint64_t do_perft(Position& pos, int depth)
 		return list.size;
 	}
 
-	uint64_t total = list.size;
+	uint64_t total = 0;//list.size;
 
 	for (int i = 0; i < list.size; ++i)
 	{

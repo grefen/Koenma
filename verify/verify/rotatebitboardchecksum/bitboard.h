@@ -248,6 +248,22 @@ public:
 		return Bitboard(0, 0, 0);
 	}
 
+	void pop_lsb()
+	{
+		if (bb[0])
+		{
+			bb[0] &= bb[0] - 1;
+		}
+		else if (bb[1])
+		{
+			bb[1] &= bb[1] - 1;
+		}
+		else if (bb[2])
+		{
+			bb[2] &= bb[2] - 1;
+		}
+	}
+
 	//for debug
 	void print(FILE* fp)//打印正常棋盘，未旋转的；
 	{

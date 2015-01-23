@@ -52,6 +52,9 @@ public:
 
 	void do_move(Move m, undo_t* undo);
 	void undo_move(Move mu,undo_t* undo);
+
+	bool in_check(Color c);
+	
 private:
 
     Bitboard occupied, occupied_rl90;

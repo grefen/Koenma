@@ -94,6 +94,9 @@ extern int SquareDistance[SQUARE_NB][SQUARE_NB];
 extern int    MS1BTable[256];
 extern Square BSFTable[96];
 
+extern const uint64_t DeBruijn_64;
+extern const uint32_t DeBruijn_32;
+
 inline int square_distance(Square s1, Square s2) {
 	return SquareDistance[s1][s2];
 }
@@ -187,6 +190,10 @@ inline Bitboard bishop_attacks_bb(Square s,  Bitboard occ, Bitboard occl90)
 inline Bitboard pawn_attacks_from(Color opp, Square s)
 {
     return PawnAttackFrom[opp][s];
+}
+inline Bitboard pawn_attacks_bb(Color c, Square s)
+{
+	return PawnAttackTo[c][s];
 }
 inline Bitboard shift_bb(Bitboard b,Square Delta) {
 

@@ -2,7 +2,19 @@
 #include "position.h"
 #include "data.h"
 
+
 #define SERIALIZE(b) while(b) mlist->mlist[mlist->size++].move = make_move(from, pop_lsb(&b))
+
+//inline Square pop_lsb32(uint32_t& b){
+//    
+//	Square s = BSFTable[(((b^(b-1))* DeBruijn_32)>>27)];
+//	
+//	b &= b-1;
+//
+//	return s;
+//}
+
+//#define SERIALIZE(b) while(b.bb[0]){ mlist->mlist[mlist->size++].move = make_move(from, pop_lsb32(b.bb[0]));} while(b.bb[1]){ mlist->mlist[mlist->size++].move = make_move(from, Square(pop_lsb32(b.bb[1]) + 32));} while(b.bb[2]){ mlist->mlist[mlist->size++].move = make_move(from, Square(pop_lsb32(b.bb[2]) + 64));}
 
 
 static const char* PieceMap[COLOR_NB] = { " PBANCRK", " pbancrk" };
@@ -50,8 +62,22 @@ std::string move_to_chinese(const Position& pos, Move m)
 	return move;
 }
 
-static bool move_is_legal(const Position& pos, ExtMove move)
+static bool move_is_legal(Position& pos, ExtMove move)
 {
+
+	//
+	//bool legal;
+	//
+	//undo_t undo[1];
+	//pos.do_move(move.move, undo);
+
+ //   legal = !pos.in_check(~pos.side_to_move());
+
+	//pos.undo_move(move.move, undo);
+
+	//return legal;
+
+	
 	Move m = move.move;
 	assert(is_ok(m));	
 
@@ -109,6 +135,7 @@ static bool move_is_legal(const Position& pos, ExtMove move)
 	if((pawn_attacks_from(~us,ksq) & pawns) ) return false;
 
 	if((rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
+
 
 	return true;
 }
@@ -224,7 +251,7 @@ static void gen_king_moves(const Position& pos, MoveList* mlist)
 	}
 }
 
-void gen_legal_moves(const Position& pos, MoveList* mlist)
+void gen_legal_moves(Position& pos, MoveList* mlist)
 {
 	gen_rook_moves(pos, mlist);
 	gen_knight_moves(pos, mlist);

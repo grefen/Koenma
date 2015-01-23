@@ -225,7 +225,7 @@ bool Position::pos_is_ok(int* failedStep) const
 
 void Position::do_move(Move m,undo_t* undo)
 {
-	gamePly++;
+   	gamePly++;
 	Color us = sideToMove;
 	Color them = ~us;
 	Square from = from_sq(m);
@@ -243,7 +243,7 @@ void Position::do_move(Move m,undo_t* undo)
 
 	undo->capturedType = capture;
 
-	sideToMove = ~sideToMove;
+	sideToMove = ~sideToMove;	
 
 }
 void Position::undo_move(Move m,undo_t* undo)
@@ -259,7 +259,7 @@ void Position::undo_move(Move m,undo_t* undo)
 	PieceType pt = type_of(piece_on(to));
 	PieceType capture = undo->capturedType;
 
-	//assert(capture != KING);
+	assert(capture != KING);
 
 	move_piece(to, from, us, pt); // Put the piece back at the source square
 
@@ -273,4 +273,22 @@ void Position::undo_move(Move m,undo_t* undo)
 	gamePly--;
 
 	assert(pos_is_ok());
+}
+bool Position::in_check(Color c)
+{    
+	Square king = king_square(c);
+	Color  opp = ~c;
+
+	Bitboard rooks = pieces(opp, ROOK);
+	Bitboard knights = pieces(opp, KNIGHT);
+	Bitboard cannons = pieces(opp, CANNON);
+	Bitboard pawns   = pieces(opp, PAWN);
+
+	if((rook_attacks_bb(king,occupied,occupied_rl90) & rooks) ) return true;
+	if((knight_attacks_from(king, occupied,occupied_rl90) & knights) ) return true;
+	if((cannon_control_bb(king, occupied,occupied_rl90) & cannons)) return true;	
+	if((pawn_attacks_from(opp, king) & pawns) ) return true;
+    if((rook_attacks_bb(king,occupied,occupied_rl90) & king_square(opp)) ) return true;
+
+	return false;
 }

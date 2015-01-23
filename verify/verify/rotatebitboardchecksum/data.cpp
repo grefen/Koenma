@@ -152,7 +152,8 @@ Square lsb(Bitboard b)
 Square pop_lsb(Bitboard* b)
 {
 	Bitboard bb = *b;
-	*b = bb & (bb.operator-(1));
+	//*b = bb & (bb.operator-(1));
+	b->pop_lsb();
 	return BSFTable[bsf_index90(bb)];
 }
 

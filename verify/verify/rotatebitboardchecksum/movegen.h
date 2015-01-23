@@ -42,6 +42,6 @@ inline bool is_ok(Move m) {
 
 
 extern std::string move_to_chinese(const Position& pos, Move m);
-extern void gen_legal_moves(const Position& pos, MoveList* mlist);
+extern void gen_legal_moves(Position& pos, MoveList* mlist);
 
 #endif
