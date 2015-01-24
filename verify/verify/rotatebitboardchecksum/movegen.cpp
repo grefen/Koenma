@@ -134,14 +134,34 @@ static bool move_is_legal(Position& pos, ExtMove move)
 
 
 
-	if((RookAttackMask[ksq]& cannons) &&(cannon_control_bb(ksq, occ,occl90) & cannons)) return false;
-	if((RookAttackMask[ksq]& rooks) && (rook_attacks_bb(ksq,occ,occl90)& rooks) ) return false;
-	if((KnightAttackMask[ksq]&knights) && (knight_attacks_from(ksq, occ,occl90)&knights) ) return false;
-	if((pawn_attacks_from(~us,ksq) & pawns) ) return false;
+	//if((RookAttackMask[ksq]& cannons) &&(cannon_control_bb(ksq, occ,occl90) & cannons)) return false;
+	//if((RookAttackMask[ksq]& rooks) && (rook_attacks_bb(ksq,occ,occl90)& rooks) ) return false;
+	//if((KnightAttackMask[ksq]&knights) && (knight_attacks_from(ksq, occ,occl90)&knights) ) return false;
+	//if((pawn_attacks_from(~us,ksq) & pawns) ) return false;
 
-	if((RookAttackMask[ksq]& pos.king_square(~us)) && (rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
+	//if((RookAttackMask[ksq]& pos.king_square(~us)) && (rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
 
-	
+	if (bitboard_and_bitboard(RookAttackMask[ksq],cannons) && bitboard_and_bitboard(cannon_control_bb(ksq, occ,occl90) , cannons))
+	{
+		return false;
+	}
+	if (bitboard_and_bitboard(RookAttackMask[ksq],rooks) && bitboard_and_bitboard(rook_attacks_bb(ksq,occ,occl90), rooks))
+	{
+		return false;
+	}
+	if (bitboard_and_bitboard(KnightAttackMask[ksq],knights) && bitboard_and_bitboard(knight_attacks_from(ksq, occ,occl90),knights))
+	{
+		return false;
+	}
+	if (bitboard_and_bitboard(pawn_attacks_from(~us,ksq),pawns))
+	{
+		return false;
+	}
+	if (bitboard_and_square(RookAttackMask[ksq],pos.king_square(~us)) && bitboard_and_square(rook_attacks_bb(ksq,occ,occl90),pos.king_square(~us)))
+	{
+		return false;
+	}
+
 	return true;
 }
 
