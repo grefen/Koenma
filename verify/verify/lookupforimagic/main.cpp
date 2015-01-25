@@ -177,25 +177,68 @@ int BBits[64] = {
 	6, 5, 5, 5, 5, 5, 5, 6
 };
 
-int main() {
-	int square;
-
-	printf("const uint64 RMagic[64] = {\n");
-	for(square = 0; square < 64; square++)
-		printf("  0x%llxULL,\n", find_magic(square, RBits[square], 0));
-	printf("};\n\n");
-
-	printf("const uint64 BMagic[64] = {\n");
-	for(square = 0; square < 64; square++)
-		printf("  0x%llxULL,\n", find_magic(square, BBits[square], 1));
-	printf("};\n\n");
-
-	getchar();
-	return 0;
-}
+//int main() {
+//	int square;
+//
+//	printf("const uint64 RMagic[64] = {\n");
+//	for(square = 0; square < 64; square++)
+//		printf("  0x%llxULL,\n", find_magic(square, RBits[square], 0));
+//	printf("};\n\n");
+//
+//	printf("const uint64 BMagic[64] = {\n");
+//	for(square = 0; square < 64; square++)
+//		printf("  0x%llxULL,\n", find_magic(square, BBits[square], 1));
+//	printf("};\n\n");
+//
+//	getchar();
+//	return 0;
+//}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	//int b,size;
+	//int occupancy[256];
+	//int mask = 0x0f0f00;
+	//b = size = 0;
+	//do {
+	//	occupancy[size] = b;
+	//	printf("0x%X\n",b);
+	//	b = (b - mask)& mask;
+	//	
+	//} while (b);
+
+    //遍历某些固定位组成的数
+	struct uint96{
+		unsigned int bb[3];
+	};
+
+	uint96 mask;
+	mask.bb[0] = 0x00F00000;
+	mask.bb[1] = 0x0000F000;
+	mask.bb[2] = 0x0000000F;
+
+    unsigned int b[3];
+	unsigned int size = 0;
+	b[0] = b[1] = b[2] = 0;
+
+	do 
+	{
+		do 
+		{
+			do 
+			{
+				printf("0x%08X%08X%08X\n",b[2],b[1],b[0]);
+
+				b[0] = (b[0] - mask.bb[0])&mask.bb[0];
+
+			} while (b[0]);
+			b[1] = (b[1] - mask.bb[1])&mask.bb[1];
+			
+		} while (b[1]);
+		b[2] = (b[2] - mask.bb[2])&mask.bb[2];
+	} while (b[2]);
+	
+	getchar();
 	return 0;
 }
 
