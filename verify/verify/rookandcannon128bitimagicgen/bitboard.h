@@ -40,7 +40,7 @@ public:
 	uint64_t bb[2];
 
 	Bitboard(){ bb[0] = bb[1] = 0;}
-	Bitboard(uint64_t low, uint64_t hig){bb[0] = low&BIT_MASK; bb[2] = hig&BIT_MASK;}
+	Bitboard(uint64_t low, uint64_t hig){bb[0] = low&BIT_MASK; bb[1] = hig&BIT_MASK;}
 	
 	operator bool()const{
 		return bb[0]||bb[1];
@@ -104,9 +104,9 @@ public:
 		else if (bit <= 45)
             return Bitboard(bb[0] << bit, bb[1] << bit | bb[0] >> (45 - bit));
 		else if(bit <= 90)
-			return Bitboard(0, bb[0]<<bit-45);
+			return Bitboard(0, bb[0]<<(bit-45));
 		else
-			return Bitboard(0, 0, 0);
+			return Bitboard(0, 0);
 	}
 
 	Bitboard operator >>(int bit) 
@@ -118,7 +118,7 @@ public:
 		else if(bit <= 90)
             return Bitboard(bb[1] >> (bit - 45), 0);
 		else
-			return Bitboard(0, 0, 0);
+			return Bitboard(0, 0);
 	}
 
 	Bitboard &operator <<=(int bit)
@@ -161,6 +161,8 @@ public:
             bb[0] >>= bit;
             bb[0] |= bb[1] << (45 - bit);
 			bb[1] >>= bit;
+
+			bb[0] &= BIT_MASK;//垃圾数据清理
 		}
 		else if (bit <= 90)
 		{
@@ -206,7 +208,7 @@ public:
 			9,  10, 11, 12, 13, 14, 15, 16, 17,
 			0,  1,  2,  3,  4,  5,  6,  7,  8,
 		};
-		Bitboard one(0x1,0,0);
+		Bitboard one(0x1,0);
 		for (int i = 0; i < 90; ++i)
 		{
             Bitboard t = one<<shift[i];
@@ -230,7 +232,7 @@ public:
 
 		int shift[10] = {0,10,20,30,40,50,60,70,80,90};       
 
-		Bitboard one(0x1,0,0);
+		Bitboard one(0x1,0);
 		for(int i = 0 ; i< 9; ++i)
 		{
 			Bitboard t = (*this)>>shift[8-i];
@@ -258,7 +260,7 @@ public:
 			82, 73, 64, 55, 46, 37, 28, 19, 10, 1,
 			81, 72, 63, 54, 45, 36, 27, 18, 9,  0,
 		};
-		Bitboard one(0x1,0,0);
+		Bitboard one(0x1,0);
 		for (int i = 0; i < 90; ++i)
 		{
 			Bitboard t = one<<shift[i];
@@ -279,7 +281,7 @@ public:
 
 		fprintf(fp,"\n");
 
-		Bitboard one(0x1,0,0);
+		Bitboard one(0x1,0);
 		for(int i = 0 ; i< 10; ++i)
 		{
 			Bitboard t = (*this)>>shift[9-i];

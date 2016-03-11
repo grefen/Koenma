@@ -268,7 +268,11 @@ inline unsigned magic_index(Square s, Bitboard occ) {
     bb[1] = occ.bb[1]&Masks[s].bb[1];
 	bb[2] = occ.bb[2]&Masks[s].bb[2];
 
-	return ( (bb[0]*Magics[s].bb[0])>>Shifts[s] )^( (bb[1]*Magics[s].bb[1])>>Shifts[s] )^( ((bb[2])*Magics[s].bb[2])>>(Shifts[s]) );//>>Shifts[s];
+	//return ( (bb[0]*Magics[s].bb[0])>>Shifts[s] )^( (bb[1]*Magics[s].bb[1])>>Shifts[s] )^( ((bb[2])*Magics[s].bb[2])>>(Shifts[s]) );//>>Shifts[s];
+
+	int index = ( ( (bb[0]*Magics[s].bb[0]) )^( (bb[1]*Magics[s].bb[1]) )^( ((bb[2]|0xf3000000)*Magics[s].bb[2]) ) ) >> Shifts[s];
+
+	return index;
 }
 #endif
 

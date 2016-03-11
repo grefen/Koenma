@@ -46,7 +46,7 @@ Bitboard PassedRiverBB[COLOR_NB];
 int SquareDistance[SQUARE_NB][SQUARE_NB];
 
 int    MS1BTable[256];
-Square BSFTable[96];
+Square BSFTable[128];
 
 Bitboard RookTable[90*(1<<15)];
 Bitboard CannonTable[90*(1<<15)];
@@ -69,19 +69,20 @@ typedef unsigned (Fn)(Square, Bitboard);
 void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[],
 				 Bitboard masks[], unsigned shifts[], Square deltas[], Fn index);
 
-uint32_t random_uint32() {
-	uint32_t u1, u2;
-	u1 = (uint32_t)(rand()) & 0xFFFF; u2 = (uint32_t)(rand()) & 0xFFFF;	
-	return u1 | (u2 << 16);
-}
-
-Bitboard random_bitboard(){
-	return Bitboard(random_uint32(),random_uint32(),random_uint32());
-}
+//my own for test
+//uint32_t random_uint32() {
+//	uint32_t u1, u2;
+//	u1 = (uint32_t)(rand()) & 0xFFFF; u2 = (uint32_t)(rand()) & 0xFFFF;	
+//	return u1 | (u2 << 16);
+//}
+//
+//Bitboard random_bitboard(){
+//	return Bitboard(random_uint32(),random_uint32(),random_uint32());
+//}
 
 Bitboard sliding_attack(Square deltas[], Square sq, Bitboard occupied) {
 
-	Bitboard attack(0,0,0);
+	Bitboard attack(0,0);
 
 	//square_distance作用是防止边界发生回环，如最右边的sq加1会回环到最左上位置
 	for (int i = 0; i < 4; ++i)
@@ -100,7 +101,7 @@ Bitboard sliding_attack(Square deltas[], Square sq, Bitboard occupied) {
 
 Bitboard cannon_sliding_control(Square deltas[], Square sq, Bitboard occupied) {
 
-	Bitboard attack(0,0,0);
+	Bitboard attack(0,0);
 
 	//square_distance作用是防止边界发生回环，如最右边的sq加1会回环到最左上位置
 	for (int i = 0; i < 4; ++i){
@@ -127,19 +128,31 @@ Bitboard cannon_sliding_control(Square deltas[], Square sq, Bitboard occupied) {
 	return attack;
 }
 
+//
 uint32_t bsf_index90(Bitboard b) {
 
+	//32bit
+	//if(b.bb[0] > 0)
+	//{
+	//	return (((b.bb[0]^(b.bb[0]-1))* DeBruijn_32)>>27);
+	//}
+	//else if(b.bb[1] > 0)
+	//{
+	//	return (((b.bb[1]^(b.bb[1]-1))* DeBruijn_32)>>27) + 32;
+	//}
+	//else if(b.bb[2] > 0)
+	//{
+	//	return (((b.bb[2]^(b.bb[2]-1))* DeBruijn_32)>>27) + 64;
+	//}
+
+	//64bit
 	if(b.bb[0] > 0)
 	{
-		return (((b.bb[0]^(b.bb[0]-1))* DeBruijn_32)>>27);
+		return (((b.bb[0]^(b.bb[0]-1))* DeBruijn_64)>>58);
 	}
 	else if(b.bb[1] > 0)
 	{
-		return (((b.bb[1]^(b.bb[1]-1))* DeBruijn_32)>>27) + 32;
-	}
-	else if(b.bb[2] > 0)
-	{
-		return (((b.bb[2]^(b.bb[2]-1))* DeBruijn_32)>>27) + 64;
+		return (((b.bb[1]^(b.bb[1]-1))* DeBruijn_64)>>58) + 64;
 	}
 
 	return 0;
@@ -147,63 +160,117 @@ uint32_t bsf_index90(Bitboard b) {
 
 Square msb(Bitboard b) {
 
-	uint32_t b32;
+    uint64_t b64;
 	int result = 0;
 
-	if(b.bb[2] > 0)
-	{
-		result = 64;
+    if (b.bb[1] > 0)
+    {
+		result = 45;
 
-		b32 = uint32_t(b.bb[2]);
+        b64 = b.bb[1];
 
-		if (b32 > 0xFFFF)
+		if (b64 > 0xFFFFFFFF)
 		{
-			b32 >>= 16;
+			b64 >>= 32;
+			result += 32;
+		}
+
+		if (b64 > 0xFFFF)
+		{
+			b64 >>= 16;
 			result += 16;
 		}
 
-		if (b32 > 0xFF)
+		if (b64 > 0xFF)
 		{
-			b32 >>= 8;
+			b64 >>= 8;
 			result += 8;
 		}
-	}
-	else if(b.bb[1] > 0)
-	{
-		result = 32;
 
-		b32 = uint32_t(b.bb[1]);
-
-		if (b32 > 0xFFFF)
-		{
-			b32 >>= 16;
-			result += 16;
-		}
-
-		if (b32 > 0xFF)
-		{
-			b32 >>= 8;
-			result += 8;
-		}
-	}
+		return (Square)(result + MS1BTable[b64]);
+    }
 	else 
 	{
-		b32 = uint32_t(b.bb[0]);
+         b64 = b.bb[0];
 
-		if (b32 > 0xFFFF)
-		{
-			b32 >>= 16;
-			result += 16;
-		}
+		 if (b64 > 0xFFFFFFFF)
+		 {
+			 b64 >>= 32;
+			 result += 32;
+		 }
 
-		if (b32 > 0xFF)
-		{
-			b32 >>= 8;
-			result += 8;
-		}
-	}  
+		 if (b64 > 0xFFFF)
+		 {
+			 b64 >>= 16;
+			 result += 16;
+		 }
 
-	return (Square)(result + MS1BTable[b32]);
+		 if (b64 > 0xFF)
+		 {
+			 b64 >>= 8;
+			 result += 8;
+		 }
+
+		 return (Square)(result + MS1BTable[b64]);
+	}
+
+	//uint32_t b32;
+	//int result = 0;
+
+	//if(b.bb[2] > 0)
+	//{
+	//	result = 64;
+
+	//	b32 = uint32_t(b.bb[2]);
+
+	//	if (b32 > 0xFFFF)
+	//	{
+	//		b32 >>= 16;
+	//		result += 16;
+	//	}
+
+	//	if (b32 > 0xFF)
+	//	{
+	//		b32 >>= 8;
+	//		result += 8;
+	//	}
+	//}
+	//else if(b.bb[1] > 0)
+	//{
+	//	result = 32;
+
+	//	b32 = uint32_t(b.bb[1]);
+
+	//	if (b32 > 0xFFFF)
+	//	{
+	//		b32 >>= 16;
+	//		result += 16;
+	//	}
+
+	//	if (b32 > 0xFF)
+	//	{
+	//		b32 >>= 8;
+	//		result += 8;
+	//	}
+	//}
+	//else 
+	//{
+	//	b32 = uint32_t(b.bb[0]);
+
+	//	if (b32 > 0xFFFF)
+	//	{
+	//		b32 >>= 16;
+	//		result += 16;
+	//	}
+
+	//	if (b32 > 0xFF)
+	//	{
+	//		b32 >>= 8;
+	//		result += 8;
+	//	}
+	//}  
+
+	//return (Square)(result + MS1BTable[b32]);
 }
 Square lsb(Bitboard b)
 {
@@ -216,16 +283,23 @@ Square pop_lsb(Bitboard* b)
 	b->pop_lsb();
 	return BSFTable[bsf_index90(bb)];
 }
-inline uint32_t popcount32(uint32_t b)
-{
-	uint32_t  v = uint32_t(b);
-	v -=  (v >> 1) & 0x55555555; // 0-2 in 2 bits
-	v  = ((v >> 2) & 0x33333333) + (v & 0x33333333); // 0-4 in 4 bits
-	v  = ((v >> 4) + v) & 0x0F0F0F0F;
-	return (v * 0x01010101) >> 24;
+//inline uint32_t popcount32(uint32_t b)
+//{
+//	uint32_t  v = uint32_t(b);
+//	v -=  (v >> 1) & 0x55555555; // 0-2 in 2 bits
+//	v  = ((v >> 2) & 0x33333333) + (v & 0x33333333); // 0-4 in 4 bits
+//	v  = ((v >> 4) + v) & 0x0F0F0F0F;
+//	return (v * 0x01010101) >> 24;
+//}
+inline int popcount64(uint64_t b) {
+	b -=  (b >> 1) & 0x5555555555555555ULL;
+	b  = ((b >> 2) & 0x3333333333333333ULL) + (b & 0x3333333333333333ULL);
+	b  = ((b >> 4) + b) & 0x0F0F0F0F0F0F0F0FULL;
+	return (b * 0x0101010101010101ULL) >> 56;
 }
 inline uint32_t popcount(const Bitboard& b){
-    return popcount32(b.bb[0]) + popcount32(b.bb[1]) + popcount32(b.bb[2]);
+    //return popcount32(b.bb[0]) + popcount32(b.bb[1]) + popcount32(b.bb[2]);
+	return popcount64(b.bb[0]) + popcount64(b.bb[1]);
 }
 
 void init_data(){
@@ -236,13 +310,13 @@ void init_data(){
 
 	for (int i = 0; i < SQUARE_NB; ++i)
 	{
-		BSFTable[bsf_index90(Bitboard(1,0,0) << i)] = Square(i);	 
+		BSFTable[bsf_index90(Bitboard(1,0) << i)] = Square(i);	 
 	}
 
 
 	for (int i = 0; i < SQUARE_NB; ++i)
 	{
-		SquareBB[i] = (Bitboard(1, 0, 0)<<(i));
+		SquareBB[i] = (Bitboard(1, 0)<<(i));
 	}
 
 	for (Square s = SQ_A0; s <= SQ_I9; ++s)
@@ -636,7 +710,7 @@ void init_data(){
 
 	//init imagics
 	//Square RDeltas[] = { DELTA_N,  DELTA_E,  DELTA_S,  DELTA_W  };
-    init_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index<ROOK>);
+   init_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index<ROOK>);
    // init_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, magic_index<ROOK>);
 }
 
@@ -671,7 +745,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		// the number of 1s of the mask. Hence we deduce the size of the shift to
 		// apply to the 64 or 32 bits word to get the index.
 		masks[s]  = sliding_attack(deltas, s, Bitboard()) & ~edges;
-		shifts[s] = 32 - popcount(masks[s]);//(Is64Bit ? 64 : 32) - popcount<Max15>(masks[s]);
+		shifts[s] = 64 - popcount(masks[s]);//(Is64Bit ? 64 : 32) - popcount<Max15>(masks[s]);
 
 		// Use Carry-Rippler trick to enumerate all subsets of masks[s] and
 		// store the corresponding sliding attack bitboard in reference[].
@@ -688,8 +762,9 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		//	b = (b - masks[s]) & masks[s];
 		//} while (b);
 
-		do 
-		{
+		//遍历所有bit
+		//do 
+		//{
 			do 
 			{
 				do 
@@ -706,8 +781,8 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 				b.bb[1] = (b.bb[1] - masks[s].bb[1])&masks[s].bb[1];
 
 			} while (b.bb[1]);
-			b.bb[2] = (b.bb[2] - masks[s].bb[2])&masks[s].bb[2];
-		} while (b.bb[2]);
+			//b.bb[2] = (b.bb[2] - masks[s].bb[2])&masks[s].bb[2];
+		//} while (b.bb[2]);
 
 
 		// Set the offset for the table of the next square. We have individual
@@ -732,20 +807,11 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 			do 
 			{
 			
-				if(trycount > 1000000){
-					seed++;
-                    trycount = 0;
 
-					printf("try %d,shift:%d\n",seed,shifts[s]);
-					//masks[s].print(stdout);
-
-					
-                    printf("i %d, size %d\n",maxtime,size);
-				}
-				magics[s] = rk.magic_bitboard(seed/*booster*/);;//random_bitboard();
-                // ((bb[0]*Magics->bb[0])^(bb[1]*Magics->bb[1])^(bb[2]*Magics->bb[2]))>>Shifts[s];
+				magics[s] = rk.magic_bitboard(booster);
+               
 				
-			} while (popcount32(( (magics[s].bb[0] * masks[s].bb[0])^(magics[s].bb[1] * masks[s].bb[1])^(magics[s].bb[2] * masks[s].bb[2]) ) >> 22) < 5);
+			} while (popcount64(( (magics[s].bb[0] * masks[s].bb[0])^(magics[s].bb[1] * masks[s].bb[1]) ) >> 54) < 5);
 
 			trycount++;
 			
@@ -771,6 +837,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 			if(i > maxtime) maxtime = i;
 		} while (i < size);
 
-		printf("sq:%d,bb0:0x%X,bb1:0x%X,bb2:0x%X\n",s,magics[s].bb[0],magics[s].bb[1],magics[s].bb[2]);
+		
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX\n",s, magics[s].bb[0], magics[s].bb[1]);
 	}
 }

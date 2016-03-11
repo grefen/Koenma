@@ -87,7 +87,8 @@ public:
   }
 
   Bitboard magic_bitboard(int s){
-	  return Bitboard(magic_rand32<uint32_t>(s),magic_rand32<uint32_t>(s),magic_rand32<uint32_t>(s));
+	  //return Bitboard(magic_rand32<uint32_t>(s),magic_rand32<uint32_t>(s),magic_rand32<uint32_t>(s));//32bit Bitboard
+	  return  Bitboard(magic_rand<uint64_t>(s), magic_rand<uint64_t>(s));
   }
 };
 
