@@ -3,7 +3,7 @@
 #include "bitboardtest.h"
 int main()
 {
-	printf("rotate bitboard + knight checksum solution V1.00\n");
+	printf("rotate bitboard + knight checksum solution 32bit Bitboard V1.00\n");
 
 	printf("the result is: depth 5 use 7.5 seconds\n");
 

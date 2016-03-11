@@ -177,6 +177,7 @@ int BBits[64] = {
 	6, 5, 5, 5, 5, 5, 5, 6
 };
 
+//国际象棋中寻找maigc的方法
 //int main() {
 //	int square;
 //
@@ -196,48 +197,52 @@ int BBits[64] = {
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//int b,size;
-	//int occupancy[256];
-	//int mask = 0x0f0f00;
-	//b = size = 0;
-	//do {
-	//	occupancy[size] = b;
-	//	printf("0x%X\n",b);
-	//	b = (b - mask)& mask;
-	//	
-	//} while (b);
 
-    //遍历某些固定位组成的数
-	struct uint96{
-		unsigned int bb[3];
-	};
+	//测试：遍历特定bit所能表示的所有数；
+	//如：遍历0x0f0f00中f所占用的bit组成的所有数；
+	int b,size;
+	int occupancy[256];
+	int mask = 0x0f0f00;
+	b = size = 0;
+	do {
+		occupancy[size] = b;
+		printf("0x%X\n",b);
+		b = (b - mask)& mask;
 
-	uint96 mask;
-	mask.bb[0] = 0x00F00000;
-	mask.bb[1] = 0x0000F000;
-	mask.bb[2] = 0x0000000F;
+	} while (b);
 
-    unsigned int b[3];
-	unsigned int size = 0;
-	b[0] = b[1] = b[2] = 0;
+	//下面测试在位棋盘中是否可行
+	//   //遍历某些固定位组成的数
+	//struct uint96{
+	//	unsigned int bb[3];
+	//};
 
-	do 
-	{
-		do 
-		{
-			do 
-			{
-				printf("0x%08X%08X%08X\n",b[2],b[1],b[0]);
+	//uint96 mask;
+	//mask.bb[0] = 0x00F00000;
+	//mask.bb[1] = 0x0000F000;
+	//mask.bb[2] = 0x0000000F;
 
-				b[0] = (b[0] - mask.bb[0])&mask.bb[0];
+	//   unsigned int b[3];
+	//unsigned int size = 0;
+	//b[0] = b[1] = b[2] = 0;
 
-			} while (b[0]);
-			b[1] = (b[1] - mask.bb[1])&mask.bb[1];
-			
-		} while (b[1]);
-		b[2] = (b[2] - mask.bb[2])&mask.bb[2];
-	} while (b[2]);
-	
+	//do 
+	//{
+	//	do 
+	//	{
+	//		do 
+	//		{
+	//			printf("0x%08X%08X%08X\n",b[2],b[1],b[0]);
+
+	//			b[0] = (b[0] - mask.bb[0])&mask.bb[0];
+
+	//		} while (b[0]);
+	//		b[1] = (b[1] - mask.bb[1])&mask.bb[1];
+	//		
+	//	} while (b[1]);
+	//	b[2] = (b[2] - mask.bb[2])&mask.bb[2];
+	//} while (b[2]);
+
 	getchar();
 	return 0;
 }
