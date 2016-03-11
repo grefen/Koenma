@@ -164,6 +164,8 @@ void test_perft()
 {
 	do 
 	{
+		printf("please input perft depth(0~4):\n");
+
 		char d[2] = {0};
 		d[0] = getchar();
         int depth = atoi(d);
@@ -177,7 +179,7 @@ void test_perft()
 
 		uint64_t total = do_perft(pos, depth);
 
-		printf("nodes: %I64d, time:  %d\n",total, clock()-t);
+		printf("nodes: %I64d, time:  %d\n\n",total, clock()-t);
 
 	} while (true);
 
