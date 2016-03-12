@@ -637,7 +637,7 @@ void init_data(){
 	//init imagics
 	//Square RDeltas[] = { DELTA_N,  DELTA_E,  DELTA_S,  DELTA_W  };
     init_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index<ROOK>);
-   // init_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, magic_index<ROOK>);
+    //init_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, magic_index<ROOK>);
 }
 
 // init_magics() computes all rook and bishop attacks at startup. Magic

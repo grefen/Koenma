@@ -48,7 +48,7 @@ int SquareDistance[SQUARE_NB][SQUARE_NB];
 int    MS1BTable[256];
 Square BSFTable[128];
 
-Bitboard RookTable[90*(1<<15)];
+Bitboard RookTable[90*(1<<15)];//45M mem, very big
 Bitboard CannonTable[90*(1<<15)];
 
 Bitboard  RMasks[SQUARE_NB];
@@ -731,6 +731,8 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 	Bitboard occupancy[1<<15], reference[1<<15], edges, b;
 	int i, size, booster;
 
+	int sum = 0;
+
 	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
 	attacks[SQ_A0] = table;
 
@@ -793,7 +795,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		//if (HasPext)
 		//	continue;
 
-		booster = MagicBoosters[0][rank_of(s)];
+		booster = MagicBoosters[1][rank_of(s)];
 
 		// Find a magic for square 's' picking up an (almost) random number
 		// until we find the one that passes the verification test.
@@ -806,10 +808,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 			//while (popcount<Max15>((magics[s] * masks[s]) >> 56) < 6);
 			do 
 			{
-			
-
-				magics[s] = rk.magic_bitboard(booster);
-               
+				magics[s] = rk.magic_bitboard(booster);               
 				
 			} while (popcount64(( (magics[s].bb[0] * masks[s].bb[0])^(magics[s].bb[1] * masks[s].bb[1]) ) >> 54) < 5);
 
@@ -838,6 +837,12 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		} while (i < size);
 
 		
-		printf("sq:%d,bb0:0x%llX,bb1:0x%llX\n",s, magics[s].bb[0], magics[s].bb[1]);
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n",s, magics[s].bb[0], magics[s].bb[1], size);
+
+		sum+= size;
 	}
+
+	printf("sum: %d\n", sum);
+
+	printf("rook need %d byte == %dm memory\n", sum*16, (sum*16)/1024/1024);
 }
