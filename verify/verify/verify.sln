@@ -1,15 +1,21 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "horsechecksum", "horsechecksum\horsechecksum.vcproj", "{336277C6-FA03-468A-8997-B10B2D02DB2B}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "horsechecksum", "horsechecksum\horsechecksum.vcxproj", "{336277C6-FA03-468A-8997-B10B2D02DB2B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotatebitboardchecksum", "rotatebitboardchecksum\rotatebitboardchecksum.vcproj", "{5D14021F-A9AE-435A-B333-684D3F06FE5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotatebitboardchecksum", "rotatebitboardchecksum\rotatebitboardchecksum.vcxproj", "{5D14021F-A9AE-435A-B333-684D3F06FE5C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lookupforimagic", "lookupforimagic\lookupforimagic.vcproj", "{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lookupforimagic", "lookupforimagic\lookupforimagic.vcxproj", "{5F602E02-9C3F-49CD-BDCB-28F4E019ECC2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rookandcannonimagicgen", "rookandcannonimagicgen\rookandcannonimagicgen.vcproj", "{228D5ED4-2B68-430E-A66F-F900EDDF8D00}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rookandcannonimagicgen", "rookandcannonimagicgen\rookandcannonimagicgen.vcxproj", "{228D5ED4-2B68-430E-A66F-F900EDDF8D00}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rookandcannon128bitimagicgen", "rookandcannon128bitimagicgen\rookandcannon128bitimagicgen.vcproj", "{8AEB9D7C-BEC9-441A-B8E6-719FD8D2F4D4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rookandcannon128bitimagicgen", "rookandcannon128bitimagicgen\rookandcannon128bitimagicgen.vcxproj", "{8AEB9D7C-BEC9-441A-B8E6-719FD8D2F4D4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotate64bitboardchecksum", "rotate64bitboardchecksum\rotate64bitboardchecksum.vcxproj", "{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotate64bitboardknightimagic", "rotate64bitboardknightimagic\rotate64bitboardknightimagic.vcxproj", "{7908ED85-F715-43A7-A239-967304419DA8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +65,21 @@ Global
 		{8AEB9D7C-BEC9-441A-B8E6-719FD8D2F4D4}.Release|Win32.Build.0 = Release|Win32
 		{8AEB9D7C-BEC9-441A-B8E6-719FD8D2F4D4}.Release|x64.ActiveCfg = Release|x64
 		{8AEB9D7C-BEC9-441A-B8E6-719FD8D2F4D4}.Release|x64.Build.0 = Release|x64
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Debug|Win32.Build.0 = Debug|Win32
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Debug|x64.ActiveCfg = Debug|Win32
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Release|Win32.ActiveCfg = Release|Win32
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Release|Win32.Build.0 = Release|Win32
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Release|x64.ActiveCfg = Release|x64
+		{D942CB8B-E44E-4BC5-A3B8-CCD83D432CB6}.Release|x64.Build.0 = Release|x64
+		{7908ED85-F715-43A7-A239-967304419DA8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7908ED85-F715-43A7-A239-967304419DA8}.Debug|Win32.Build.0 = Debug|Win32
+		{7908ED85-F715-43A7-A239-967304419DA8}.Debug|x64.ActiveCfg = Debug|x64
+		{7908ED85-F715-43A7-A239-967304419DA8}.Debug|x64.Build.0 = Debug|x64
+		{7908ED85-F715-43A7-A239-967304419DA8}.Release|Win32.ActiveCfg = Release|Win32
+		{7908ED85-F715-43A7-A239-967304419DA8}.Release|Win32.Build.0 = Release|Win32
+		{7908ED85-F715-43A7-A239-967304419DA8}.Release|x64.ActiveCfg = Release|x64
+		{7908ED85-F715-43A7-A239-967304419DA8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

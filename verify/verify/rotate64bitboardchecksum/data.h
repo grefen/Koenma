@@ -4,7 +4,7 @@
 #include "types.h"
 #include "checksum.h"
 
-#define POW_2(x)   ( (Bitboard(1, 0, 0)<<(x)) )
+#define POW_2(x)   ( (Bitboard(1, 0)<<(x)) )
 
 const Bitboard  A0 = POW_2(SQ_A0), B0 = POW_2(SQ_B0), C0 = POW_2(SQ_C0), D0 = POW_2(SQ_D0), E0 = POW_2(SQ_E0), F0 = POW_2(SQ_F0), G0 = POW_2(SQ_G0), H0 = POW_2(SQ_H0), I0 = POW_2(SQ_I0),
 A1 = POW_2(SQ_A1), B1 = POW_2(SQ_B1), C1 = POW_2(SQ_C1), D1 = POW_2(SQ_D1), E1 = POW_2(SQ_E1), F1 = POW_2(SQ_F1), G1 = POW_2(SQ_G1), H1 = POW_2(SQ_H1), I1 = POW_2(SQ_I1),
@@ -49,7 +49,7 @@ const Bitboard BlackBishopCityBB  = C9|G9|A7|E7|I7|C5|G5;
 const Bitboard WhitePawnMaskBB = Rank9BB|Rank8BB|Rank7BB|Rank6BB|Rank5BB|A3|A4|C3|C4|E3|E4|G3|G4|I3|I4;
 const Bitboard BlackPawnMaskBB = Rank0BB|Rank1BB|Rank2BB|Rank3BB|Rank4BB|A5|A6|C5|C6|E5|E6|G5|G6|I5|I6;
 
-const Bitboard DarkSquares(0x00000000, 0xFFFFE000, 0xFFFFFFFF);
+const Bitboard DarkSquares(0x0000000000000000, 0x1FFFFFFFFFFF);
 
 extern Bitboard SquareBB[SQUARE_NB];
 extern Bitboard SquareBBL90[SQUARE_NB];
@@ -93,19 +93,19 @@ extern Bitboard PassedRiverBB[COLOR_NB];
 extern int SquareDistance[SQUARE_NB][SQUARE_NB];
 
 extern int    MS1BTable[256];
-extern Square BSFTable[96];
+extern Square BSFTable[128];
 
 extern const uint64_t DeBruijn_64;
 extern const uint32_t DeBruijn_32;
 
 extern Bitboard  RMasks[SQUARE_NB];
 extern Bitboard* RAttacks[SQUARE_NB];
-extern uint96_t  RMagics[SQUARE_NB];
+extern Bitboard  RMagics[SQUARE_NB];
 extern unsigned  RShifts[SQUARE_NB];
 
 extern Bitboard  CannonMasks[SQUARE_NB];
 extern Bitboard* CannonAttacks[SQUARE_NB];
-extern uint96_t  CannonMagics[SQUARE_NB];
+extern Bitboard  CannonMagics[SQUARE_NB];
 extern unsigned  CannonShifts[SQUARE_NB];
 
 inline int square_distance(Square s1, Square s2) {
@@ -165,10 +165,10 @@ inline Bitboard file_bb(Square s) {
 
 inline bool bitboard_and_square(const Bitboard& b, Square s){
     
-	return (b.bb[0]&SquareBB[s].bb[0])||(b.bb[1]&SquareBB[s].bb[1])||(b.bb[2]&SquareBB[s].bb[2]);
+	return (b.bb[0]&SquareBB[s].bb[0])||(b.bb[1]&SquareBB[s].bb[1]);
 }
 inline bool bitboard_and_bitboard(const Bitboard& a,const Bitboard& b){
-	return (a.bb[0]&b.bb[0])||(a.bb[1]&b.bb[1])||(a.bb[2]&b.bb[2]);
+	return (a.bb[0]&b.bb[0])||(a.bb[1]&b.bb[1]);
 }
 
 inline Bitboard operator&(Bitboard b, Square s) {
@@ -241,15 +241,11 @@ inline Bitboard shift_bb(Bitboard b,Square Delta) {
 /// Functions for computing sliding attack bitboards. Function attacks_bb() takes
 /// a square and a bitboard of occupied squares as input, and returns a bitboard
 /// representing all squares attacked by Pt (bishop or rook) on the given square.
-
-
-//下面方式无法再SQ_A3和SQ_G3生成imagic
-#if 1
 template<PieceType Pt>
 inline unsigned magic_index(Square s, Bitboard occ) {
 
 	Bitboard* const Masks  = Pt == ROOK ? RMasks  : CannonMasks;
-	uint96_t* const Magics = Pt == ROOK ? RMagics : CannonMagics;
+	Bitboard* const Magics = Pt == ROOK ? RMagics : CannonMagics;
 	unsigned* const Shifts = Pt == ROOK ? RShifts : CannonShifts;
 
 	//if (HasPext)
@@ -262,19 +258,14 @@ inline unsigned magic_index(Square s, Bitboard occ) {
 	//unsigned hi = unsigned(occ >> 32) & unsigned(Masks[s] >> 32);
 	//return (lo * unsigned(Magics[s]) ^ hi * unsigned(Magics[s] >> 32)) >> Shifts[s];
 
-	uint32_t bb[3];
 
-    bb[0] = occ.bb[0]&Masks[s].bb[0];
-    bb[1] = occ.bb[1]&Masks[s].bb[1];
-	bb[2] = occ.bb[2]&Masks[s].bb[2];
+   uint64_t bb[2];
+   bb[0] = occ.bb[0]&Masks[s].bb[0];
+   bb[1] = occ.bb[1]&Masks[s].bb[1];
 
-	//return ( (bb[0]*Magics[s].bb[0])>>Shifts[s] )^( (bb[1]*Magics[s].bb[1])>>Shifts[s] )^( ((bb[2])*Magics[s].bb[2])>>(Shifts[s]) );//>>Shifts[s];
-
-	int index = ( ( (bb[0]*Magics[s].bb[0]) )^( (bb[1]*Magics[s].bb[1]) )^( ((bb[2] << 6)*Magics[s].bb[2]) ) ) >> Shifts[s];
-
-	return index;
+   //very important, must << 19, be sure bb[i]*Magics[s].bb[i] hight bit is no zero
+   return  (( (bb[0]*Magics[s].bb[0])<<19 ) ^ ( (bb[1]*Magics[s].bb[1]))<<19 ) >> Shifts[s];
 }
-#endif
 
 extern Square msb(Bitboard b);
 extern Square lsb(Bitboard b);

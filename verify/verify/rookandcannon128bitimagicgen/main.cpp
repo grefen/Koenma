@@ -12,9 +12,11 @@ int main()
 	printf("in magic_index <<19 is key\n");	
 
 	printf("rook need %d byte == %dm memory\n", 1081344*16, (1081344*16)/1024/1024);
+
+	printf("%d\n",1<<15);
 	
 	//gen imagic 
-	init_data();
+	//init_data();
 	
 	system("pause");
 	return 0;
