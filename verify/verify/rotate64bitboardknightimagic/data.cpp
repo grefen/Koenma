@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <stdlib.h>
+#include <map>
 #include "data.h"
 #include "rkiss.h"
 
@@ -52,9 +53,20 @@ int SquareDistance[SQUARE_NB][SQUARE_NB];
 
 int    MS1BTable[256];
 Square BSFTable[128];
+//
+//Bitboard RookTable[90*(1<<15)];//1081344//45M mem, very big
+//Bitboard CannonTable[90*(1<<15)];
 
-Bitboard RookTable[90*(1<<15)];//45M mem, very big
-Bitboard CannonTable[90*(1<<15)];
+Bitboard RookTable[1081344];//1081344//1056k*8 mem, very big
+Bitboard CannonTable[1081344];
+Bitboard SuperCannonTable[1081344];
+
+//13800
+// 通过两级引用，压缩mem使用量
+// RookAttackTable[ RootIndirectTableOffset[sq] + imagicindex]
+uint16_t RootIndirectTable[1081344];
+Bitboard RookAttackTable[13800];
+uint16_t* RootIndirectTableOffset[SQUARE_NB];
 
 Bitboard  RMasks[SQUARE_NB];
 Bitboard* RAttacks[SQUARE_NB];
@@ -66,6 +78,11 @@ Bitboard* CannonAttacks[SQUARE_NB];
 Bitboard  CannonMagics[SQUARE_NB];
 unsigned  CannonShifts[SQUARE_NB];
 
+Bitboard  SuperCannonMasks[SQUARE_NB];
+Bitboard* SuperCannonAttacks[SQUARE_NB];
+Bitboard  SuperCannonMagics[SQUARE_NB];
+unsigned  SuperCannonShifts[SQUARE_NB];
+
 const uint64_t DeBruijn_64 = 0x3F79D71B4CB0A89ULL;
 const uint32_t DeBruijn_32 = 0x783A9B23;
 
@@ -74,8 +91,14 @@ typedef unsigned (Fn)(Square, Bitboard);
 void init_knightimagic();
 void init_knighteyeimagic();
 
-void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[],
+void init_rook_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[],
 				 Bitboard masks[], unsigned shifts[], Square deltas[], Fn index);
+
+void init_cannon_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[],
+	Bitboard masks[], unsigned shifts[], Square deltas[], Fn index);
+
+void init_supercannon_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[],
+	Bitboard masks[], unsigned shifts[], Square deltas[], Fn index);
 
 //my own for test
 //uint32_t random_uint32() {
@@ -176,6 +199,39 @@ Bitboard cannon_sliding_control(Square deltas[], Square sq, Bitboard occupied) {
 
 			if (occupied & s)
 			{                
+				count++;
+			}
+		}
+	}
+
+	return attack;
+}
+
+Bitboard supercannon_sliding_control(Square deltas[], Square sq, Bitboard occupied) {
+
+	Bitboard attack(0, 0);
+
+	//square_distance作用是防止边界发生回环，如最右边的sq加1会回环到最左上位置
+	for (int i = 0; i < 4; ++i) {
+		int count = 0;
+		for (Square s = sq + deltas[i];	is_ok(s) && square_distance(s, s - deltas[i]) == 1;
+		s += deltas[i])
+		{
+			if (count == 1)
+			{
+				//attack |= s;
+			}
+			else if (count == 2)
+			{
+				attack |= s;
+			}
+			else if (count >= 3)
+			{
+				break;
+			}
+
+			if (occupied & s)
+			{
 				count++;
 			}
 		}
@@ -768,8 +824,10 @@ void init_data(){
 
 	//init imagics
 	//Square RDeltas[] = { DELTA_N,  DELTA_E,  DELTA_S,  DELTA_W  };
-   //init_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index<ROOK>);
-   // init_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, magic_index<ROOK>);
+	init_rook_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index<ROOK>);
+    init_cannon_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, magic_index<CANNON>);
+	init_cannon_magics(SuperCannonTable, SuperCannonAttacks, SuperCannonMagics, SuperCannonMasks, SuperCannonShifts, RDeltas, supercannon_magic_index);
+
 }
 
 // init_magics() computes all rook and bishop attacks at startup. Magic
@@ -777,7 +835,7 @@ void init_data(){
 // chessprogramming.wikispaces.com/Magic+Bitboards. In particular, here we
 // use the so called "fancy" approach.
 
-void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitboard masks[], unsigned shifts[], Square deltas[], Fn index) {
+void init_rook_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitboard masks[], unsigned shifts[], Square deltas[], Fn index) {
 
 	//int MagicBoosters[][10] = { {  969, 1976, 2850,  542, 2069, 2852, 1708,  164, 164, 164 },
 	//{ 3101,  552, 3555,  926,  834,   26, 2131, 1117, 1117, 1117 } };
@@ -790,6 +848,8 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 	int i, size, booster;
 
 	int sum = 0;
+	int totalattackset = 0;
+	int globalindex = 0;
 
 	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
 	attacks[SQ_A0] = table;
@@ -811,6 +871,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		// store the corresponding sliding attack bitboard in reference[].
 		//b = size = 0;
 		size = 0;
+		b = Bitboard();
 		//do {
 		//	occupancy[size] = b;
 		//	reference[size] = sliding_attack(deltas, s, b);
@@ -897,12 +958,310 @@ void init_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitbo
 		
 		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n",s, magics[s].bb[0], magics[s].bb[1], size);
 
+//		struct EqualBitboard {
+//			bool operator()(const Bitboard& a, const Bitboard& b) const {
+//				if (a.bb[1] < b.bb[1]) return true;
+//				else if (a.bb[1] == b.bb[1]) {
+//					if (a.bb[0] < b.bb[0]) return true;
+//					else return false;
+//				}
+//				else if (a.bb[1] > b.bb[1]) {
+//					return false;
+//				}
+//				
+//				return false;
+//			}
+//		};
+//
+//		std::map<Bitboard, int, EqualBitboard> set;
+//		for (int ii = 0; ii < size; ++ii) {
+//			Bitboard attack = attacks[s][index(s, occupancy[ii])];
+//			if (set.find(attack) != set.end()) {
+//				set[attack]++;
+//			}
+//			else {
+//				set.insert(std::make_pair(attack, 1));
+//				//printf("index : %d\n", set.size());
+//				//attack.print(stdout);
+//				//getchar();
+//			} 
+//		}
+//		totalattackset += set.size();
+//		printf("different size %d \n", set.size());
+//
+//		//uint16_t RootIndirectTable[1081344];
+//		//Bitboard RookAttackTable[13800];
+//		//uint16_t* RootIndirectTableOffset[SQUARE_NB];
+//		RootIndirectTableOffset[0] = RootIndirectTable;
+//		if (s < SQ_I9)
+//			RootIndirectTableOffset[s + 1] = RootIndirectTableOffset[s] + size;
+//
+//		int globaloffset = globalindex;
+//		for (int ii = 0; ii < size; ++ii) {
+//			Bitboard attack = attacks[s][index(s, occupancy[ii])];
+//
+//			bool find = false;
+//			int  idex = 0;
+//			for (int jj = globaloffset; jj < globalindex; ++jj) {
+//				if (RookAttackTable[jj] == attack) {
+//					find = true;
+//					idex = jj;
+//					break;
+//				}
+//			}
+//			if (find) {
+//				RootIndirectTableOffset[s][index(s, occupancy[ii])] = idex;
+//			}
+//			else {
+//				RootIndirectTableOffset[s][index(s, occupancy[ii])] = globalindex;
+//				RookAttackTable[globalindex] = attack;
+//				globalindex++;
+//			}
+//		}
+//
+//#if 0
+//		//
+//		int *count = new int[size];
+//		memset(count, 0, size*sizeof(int));
+//		for (int kk = 0; kk < size; ++kk) {
+//			int hashindex = index(s, occupancy[kk]);
+//			count[hashindex]++;
+//		}
+//		int totalused = 0;
+//		for (int kk = 0; kk < size; ++kk) {
+//			if (count[kk]) totalused++;
+//		}
+//		delete[] count;
+//
+//		printf("total used attack set: %d unused %d\n", totalused, size - totalused);
+//#endif
+
 		sum+= size;
+	}
+
+	printf("sum: %d total attack set %d\n", sum, totalattackset);
+
+	printf("rook need %d byte == %dm memory\n", sum*16, (sum*16)/1024/1024);
+	fflush(stdout);
+}
+void init_cannon_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitboard masks[], unsigned shifts[], Square deltas[], Fn index) {
+
+	//int MagicBoosters[][10] = { {  969, 1976, 2850,  542, 2069, 2852, 1708,  164, 164, 164 },
+	//{ 3101,  552, 3555,  926,  834,   26, 2131, 1117, 1117, 1117 } };
+
+	int MagicBoosters[][10] = { { 969, 1976, 2850,  969, 2069, 2852, 1708,  164, 164, 164 },
+	{ 3101,  552, 3555,  926,  834,   26, 2131, 1117, 1117, 1117 } };
+
+	RKISS rk;
+	Bitboard occupancy[1 << 15], reference[1 << 15], edges, b;
+	int i, size, booster;
+
+	int sum = 0;
+
+	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
+	attacks[SQ_A0] = table;
+
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
+	{
+		// Board edges are not considered in the relevant occupancies
+		edges = ((Rank0BB | Rank9BB) & ~rank_bb(s)) | ((FileABB | FileIBB) & ~file_bb(s));
+
+		// Given a square 's', the mask is the bitboard of sliding attacks from
+		// 's' computed on an empty board. The index must be big enough to contain
+		// all the attacks for each possible subset of the mask and so is 2 power
+		// the number of 1s of the mask. Hence we deduce the size of the shift to
+		// apply to the 64 or 32 bits word to get the index.
+		masks[s] = sliding_attack(deltas, s, Bitboard()) & ~edges;
+		shifts[s] = 64 - popcount(masks[s]);//(Is64Bit ? 64 : 32) - popcount<Max15>(masks[s]);
+
+											// Use Carry-Rippler trick to enumerate all subsets of masks[s] and
+											// store the corresponding sliding attack bitboard in reference[].
+		b = Bitboard();									//b = size = 0;
+		size = 0;
+		//do {
+		//	occupancy[size] = b;
+		//	reference[size] = sliding_attack(deltas, s, b);
+
+		//	//if (HasPext)
+		//	//	attacks[s][_pext_u64(b, masks[s])] = reference[size];
+
+		//	size++;
+		//	b = (b - masks[s]) & masks[s];
+		//} while (b);
+
+		//遍历所有bit
+		//do 
+		//{
+		do
+		{
+			do
+			{
+				occupancy[size] = b;
+				reference[size] = cannon_sliding_control(deltas, s, b);// sliding_attack(deltas, s, b);
+
+				size++;
+
+
+				b.bb[0] = (b.bb[0] - masks[s].bb[0])&masks[s].bb[0];
+
+			} while (b.bb[0]);
+			b.bb[1] = (b.bb[1] - masks[s].bb[1])&masks[s].bb[1];
+
+		} while (b.bb[1]);
+		//b.bb[2] = (b.bb[2] - masks[s].bb[2])&masks[s].bb[2];
+		//} while (b.bb[2]);
+
+
+		// Set the offset for the table of the next square. We have individual
+		// table sizes for each square with "Fancy Magic Bitboards".
+		if (s < SQ_I9)
+			attacks[s + 1] = attacks[s] + size;
+
+		//if (HasPext)
+		//	continue;
+
+		booster = MagicBoosters[1][rank_of(s)];
+
+		// Find a magic for square 's' picking up an (almost) random number
+		// until we find the one that passes the verification test.
+
+		int seed = 3;
+		int trycount = 0;
+		int maxtime = 0;
+		do {
+			//do magics[s] = rk.magic_rand<Bitboard>(booster);
+			//while (popcount<Max15>((magics[s] * masks[s]) >> 56) < 6);
+			do
+			{
+				magics[s] = rk.magic_bitboard(booster);
+
+			} while (popcount64(((magics[s].bb[0] * masks[s].bb[0]) ^ (magics[s].bb[1] * masks[s].bb[1])) >> 54) < 5);
+
+			trycount++;
+
+
+			std::memset(attacks[s], 0, size * sizeof(Bitboard));
+
+			// A good magic must map every possible occupancy to an index that
+			// looks up the correct sliding attack in the attacks[s] database.
+			// Note that we build up the database for square 's' as a side
+			// effect of verifying the magic.
+			for (i = 0; i < size; ++i)
+			{
+				Bitboard& attack = attacks[s][index(s, occupancy[i])];
+
+				if (attack && attack != reference[i])
+					break;
+
+				//assert(reference[i]);
+
+				attack = reference[i];
+			}
+
+			if (i > maxtime) maxtime = i;
+		} while (i < size);
+
+
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, magics[s].bb[0], magics[s].bb[1], size);
+
+		sum += size;
 	}
 
 	printf("sum: %d\n", sum);
 
-	printf("rook need %d byte == %dm memory\n", sum*16, (sum*16)/1024/1024);
+	printf("cannon need %d byte == %dm memory\n", sum * 16, (sum * 16) / 1024 / 1024);
+	fflush(stdout);
+}
+void init_supercannon_magics(Bitboard table[], Bitboard* attacks[], Bitboard magics[], Bitboard masks[], unsigned shifts[], Square deltas[], Fn index) {
+
+
+	int MagicBoosters[][10] = { { 969, 1976, 2850,  969, 2069, 2852, 1708,  164, 164, 164 },
+	{ 3101,  552, 3555,  926,  834,   26, 2131, 1117, 1117, 1117 } };
+
+	RKISS rk;
+	Bitboard occupancy[1 << 15], reference[1 << 15], edges, b;
+	int i, size, booster;
+
+	int sum = 0;
+
+	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
+	attacks[SQ_A0] = table;
+
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
+	{
+		// Board edges are not considered in the relevant occupancies
+		edges = ((Rank0BB | Rank9BB) & ~rank_bb(s)) | ((FileABB | FileIBB) & ~file_bb(s));
+
+		masks[s] = sliding_attack(deltas, s, Bitboard()) & ~edges;
+		shifts[s] = 64 - popcount(masks[s]);
+
+		b = Bitboard();									
+		size = 0;
+
+		do
+		{
+			do
+			{
+				occupancy[size] = b;
+				reference[size] = cannon_sliding_control(deltas, s, b);// sliding_attack(deltas, s, b);
+
+				size++;
+
+
+				b.bb[0] = (b.bb[0] - masks[s].bb[0])&masks[s].bb[0];
+
+			} while (b.bb[0]);
+			b.bb[1] = (b.bb[1] - masks[s].bb[1])&masks[s].bb[1];
+
+		} while (b.bb[1]);
+
+		if (s < SQ_I9)
+			attacks[s + 1] = attacks[s] + size;
+
+
+		booster = MagicBoosters[1][rank_of(s)];
+
+		int seed = 3;
+		int trycount = 0;
+		int maxtime = 0;
+		do {
+
+			do
+			{
+				magics[s] = rk.magic_bitboard(booster);
+
+			} while (popcount64(((magics[s].bb[0] * masks[s].bb[0]) ^ (magics[s].bb[1] * masks[s].bb[1])) >> 54) < 5);
+
+			trycount++;
+
+
+			std::memset(attacks[s], 0, size * sizeof(Bitboard));
+
+			for (i = 0; i < size; ++i)
+			{
+				Bitboard& attack = attacks[s][index(s, occupancy[i])];
+
+				if (attack && attack != reference[i])
+					break;
+
+				//assert(reference[i]);
+
+				attack = reference[i];
+			}
+
+			if (i > maxtime) maxtime = i;
+		} while (i < size);
+
+
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, magics[s].bb[0], magics[s].bb[1], size);
+
+		sum += size;
+	}
+
+	printf("sum: %d\n", sum);
+
+	printf("supercannon need %d byte == %dm memory\n", sum * 16, (sum * 16) / 1024 / 1024);
+	fflush(stdout);
 }
 
 void init_knightimagic(){
@@ -917,7 +1276,7 @@ void init_knightimagic(){
 	for (Square s = SQ_A0; s <= SQ_I9; ++s)
 	{
 		size = 0;
-
+		b = Bitboard();
 		//遍历kinghtleg的bit组成的所有情况
 		do
 		{
@@ -963,7 +1322,8 @@ void init_knightimagic(){
 			
 		} while (i < size);
 
-		//printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, KnightLegImagic[s].bb[0], KnightLegImagic[s].bb[1], size);
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, KnightLegImagic[s].bb[0], KnightLegImagic[s].bb[1], size);
+		fflush(stdout);
 	}
 }
 
@@ -976,10 +1336,10 @@ void init_knighteyeimagic() {
 	Bitboard occupancy[1 << 4], reference[1 << 4], edges, b;
 	int i, size, booster;
 
-	for (Square s = SQ_A0; s <1/* SQ_I9*/; ++s)
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
 	{
 		size = 0;
-
+		b = Bitboard();
 		//遍历kinghtleg的bit组成的所有情况
 		do
 		{
@@ -1025,6 +1385,7 @@ void init_knighteyeimagic() {
 
 		} while (i < size);
 
-		//printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, KnightLegImagic[s].bb[0], KnightLegImagic[s].bb[1], size);
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, KnightLegImagic[s].bb[0], KnightLegImagic[s].bb[1], size);
+		fflush(stdout);
 	}
 }

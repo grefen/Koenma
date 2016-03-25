@@ -108,19 +108,34 @@ extern Bitboard* RAttacks[SQUARE_NB];
 extern Bitboard  RMagics[SQUARE_NB];
 extern unsigned  RShifts[SQUARE_NB];
 
+extern uint16_t RootIndirectTable[1081344];
+extern Bitboard RookAttackTable[13800];
+extern uint16_t* RootIndirectTableOffset[SQUARE_NB];
+
 extern Bitboard  CannonMasks[SQUARE_NB];
 extern Bitboard* CannonAttacks[SQUARE_NB];
 extern Bitboard  CannonMagics[SQUARE_NB];
 extern unsigned  CannonShifts[SQUARE_NB];
 
+extern Bitboard  SuperCannonMasks[SQUARE_NB];
+extern Bitboard* SuperCannonAttacks[SQUARE_NB];
+extern Bitboard  SuperCannonMagics[SQUARE_NB];
+extern unsigned  SuperCannonShifts[SQUARE_NB];
+
+
+
+template<PieceType Pt>
+inline unsigned magic_index(Square s, Bitboard occ);
 inline 	unsigned knight_imagic_index(Square s, Bitboard occ, const Bitboard& Magics) {
 
-	Bitboard t = KnightLeg[s] & occ;
+	Bitboard t = KnightLeg[s] & occ; 	
 
 	//这个函数很重要，选取不好找不到image
-	//return (((t.bb[0] * Magics.bb[0]) << 19) ^ ((t.bb[1] * Magics.bb[1]) << 19)) >> 60;
-	return (((t.bb[0] * Magics.bb[0]) << 18) ^ ((t.bb[1] * Magics.bb[1]) << 18)) >> 60;
- 
+	//旧函数
+	//return (((t.bb[0] * Magics.bb[0]) << 18) ^ ((t.bb[1] * Magics.bb[1]) << 18)) >> 60;
+	
+	//新函数
+	return ((t.bb[0]<<18 ^ t.bb[1] << 18)*Magics.bb[0])>>60;
 }
 
 inline 	unsigned knight_imagiceye_index(Square s, Bitboard occ, const Bitboard& Magics) {
@@ -128,8 +143,10 @@ inline 	unsigned knight_imagiceye_index(Square s, Bitboard occ, const Bitboard& 
 	Bitboard t = KnightEye[s] & occ;
 
 	//这个函数很重要，选取不好找不到image
-	return (((t.bb[0] * Magics.bb[0]) << 19) ^ ((t.bb[1] * Magics.bb[1]) << 19)) >> 60;
+	
 	//return (((t.bb[0] * Magics.bb[0]) << 18) ^ ((t.bb[1] * Magics.bb[1]) << 18)) >> 60;
+
+	return ((t.bb[0] << 18 ^ t.bb[1] << 18)*Magics.bb[0]) >> 60;
 }
 
 inline int square_distance(Square s1, Square s2) {
@@ -231,9 +248,18 @@ inline Bitboard rook_attacks_bb(Square s, Bitboard occ, Bitboard occl90)
 {
 	return (RookAttackToR0[s][((occ>>(rank_of(s)*9 /*rank_mult(rank_of(s))*/+ 1)).bb[0])&127]) | (RookAttackToRL90[s][((occl90>>(file_of(s)*10/*file_multi(file_of(s))*/ + 1)).bb[0])&255]);
 }
+inline Bitboard rook_attacks_bb(Square s, Bitboard occ)
+{
+	return RAttacks[s][magic_index<ROOK>(s, occ)];
+	//return RookAttackTable[RootIndirectTableOffset[s][magic_index<ROOK>(s, occ)]];
+}
 inline Bitboard cannon_control_bb(Square s, Bitboard occ, Bitboard occl90)
 {
 	return (CannonAttackToR0[s][((occ>>(rank_of(s)*9/*rank_mult(rank_of(s))*/ + 1)).bb[0])&127])|(CannonAttackToRL90[s][((occl90>>(file_of(s)*10/*file_multi(file_of(s))*/ + 1)).bb[0])&255]);
+}
+inline Bitboard cannon_control_bb(Square s, Bitboard occ)
+{
+	return CannonAttacks[s][magic_index<CANNON>(s, occ)];
 }
 inline Bitboard knight_attacks_bb(Square s, Bitboard occ, Bitboard occl90)
 {
@@ -295,27 +321,25 @@ inline unsigned magic_index(Square s, Bitboard occ) {
    bb[0] = occ.bb[0]&Masks[s].bb[0];
    bb[1] = occ.bb[1]&Masks[s].bb[1];
 
-   //very important, must << 19, be sure bb[i]*Magics[s].bb[i] hight bit is no zero
-   return  (( (bb[0]*Magics[s].bb[0])<<19 ) ^ ( (bb[1]*Magics[s].bb[1]))<<19 ) >> Shifts[s];
-}
+   //very important, must << 18, be sure bb[i]*Magics[s].bb[i] hight bit is no zero
+   return  (( (bb[0]*Magics[s].bb[0])<<18 ) ^ ( (bb[1]*Magics[s].bb[1]))<<18 ) >> Shifts[s];
 
-//inline 	unsigned knight_imagic_index(Square s, Bitboard occ, const Bitboard& Magics) {
-//	
-//	Bitboard t = KnightLeg[s] & occ;
-//	
-//	//这个函数很重要，选取不好找不到image
-//	//return (((t.bb[0] * Magics.bb[0]) << 19) ^ ((t.bb[1] * Magics.bb[1]) << 19)) >> 60;
-//	return (((t.bb[0] * Magics.bb[0]) << 18) ^ ((t.bb[1] * Magics.bb[1]) << 18)) >> 60;
-//}
-//
-//inline 	unsigned knight_imagiceye_index(Square s, Bitboard occ, const Bitboard& Magics) {
-//
-//	Bitboard t = KnightEye[s] & occ;
-//
-//	//这个函数很重要，选取不好找不到image
-//	return (((t.bb[0] * Magics.bb[0]) << 19) ^ ((t.bb[1] * Magics.bb[1]) << 19)) >> 60;
-//	//return (((t.bb[0] * Magics.bb[0]) << 18) ^ ((t.bb[1] * Magics.bb[1]) << 18)) >> 60;
-//}
+   //RootIndirectTableOffset[s][index(s, occupancy[ii])] = globalindex;
+   //RookAttackTable[globalindex] = attack;
+
+   //return RookAttackTable[RootIndirectTableOffset[s][index(s, occupancy[ii])]];
+}
+inline unsigned supercannon_magic_index(Square s, Bitboard occ) {
+	Bitboard* const Masks = SuperCannonMasks;
+	Bitboard* const Magics = SuperCannonMagics;
+	unsigned* const Shifts = SuperCannonShifts;
+
+	uint64_t bb[2];
+	bb[0] = occ.bb[0] & Masks[s].bb[0];
+	bb[1] = occ.bb[1] & Masks[s].bb[1];
+
+	return  (((bb[0] * Magics[s].bb[0]) << 18) ^ ((bb[1] * Magics[s].bb[1])) << 18) >> Shifts[s];
+}
 
 extern Square msb(Bitboard b);
 extern Square lsb(Bitboard b);

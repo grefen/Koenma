@@ -106,7 +106,8 @@ inline Bitboard Position::attacks_from<ROOK>(Square s) const
 template<>
 inline Bitboard Position::attacks_from<CANNON>(Square s) const
 {
-	return cannon_control_bb(s, occupied, occupied_rl90);
+	//return cannon_control_bb(s, occupied, occupied_rl90);
+	return cannon_control_bb(s, occupied);
 }
 template<>
 inline Bitboard Position::attacks_from<KNIGHT>(Square s) const

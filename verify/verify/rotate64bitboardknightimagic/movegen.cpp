@@ -141,11 +141,19 @@ static bool move_is_legal(Position& pos, ExtMove move)
 
 	//if((RookAttackMask[ksq]& pos.king_square(~us)) && (rook_attacks_bb(ksq,occ,occl90)& pos.king_square(~us))) return false;//∂‘¡≥
 
-	if (bitboard_and_bitboard(RookAttackMask[ksq],cannons) && bitboard_and_bitboard(cannon_control_bb(ksq, occ,occl90) , cannons))
+/*	if (bitboard_and_bitboard(RookAttackMask[ksq],cannons) && bitboard_and_bitboard(cannon_control_bb(ksq, occ,occl90) , cannons))
+	{
+		return false;
+	}*/ 
+	if (bitboard_and_bitboard(RookAttackMask[ksq], cannons) && bitboard_and_bitboard(cannon_control_bb(ksq, occ), cannons))
 	{
 		return false;
 	}
-	if (bitboard_and_bitboard(RookAttackMask[ksq],rooks) && bitboard_and_bitboard(rook_attacks_bb(ksq,occ,occl90), rooks))
+	//if (bitboard_and_bitboard(RookAttackMask[ksq],rooks) && bitboard_and_bitboard(rook_attacks_bb(ksq,occ,occl90), rooks))
+	//{
+	//	return false;
+	//}
+	if (bitboard_and_bitboard(RookAttackMask[ksq],rooks) && bitboard_and_bitboard(rook_attacks_bb(ksq,occ), rooks))
 	{
 		return false;
 	}
@@ -161,7 +169,11 @@ static bool move_is_legal(Position& pos, ExtMove move)
 	{
 		return false;
 	}
-	if (bitboard_and_square(RookAttackMask[ksq],pos.king_square(~us)) && bitboard_and_square(rook_attacks_bb(ksq,occ,occl90),pos.king_square(~us)))
+	//if (bitboard_and_square(RookAttackMask[ksq],pos.king_square(~us)) && bitboard_and_square(rook_attacks_bb(ksq,occ,occl90),pos.king_square(~us)))
+	//{
+	//	return false;
+	//}
+	if (bitboard_and_square(RookAttackMask[ksq],pos.king_square(~us)) && bitboard_and_square(rook_attacks_bb(ksq,occ),pos.king_square(~us)))
 	{
 		return false;
 	}

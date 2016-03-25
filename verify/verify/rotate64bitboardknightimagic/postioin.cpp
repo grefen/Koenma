@@ -284,12 +284,15 @@ bool Position::in_check(Color c)
 	Bitboard cannons = pieces(opp, CANNON);
 	Bitboard pawns   = pieces(opp, PAWN);
 
-	if((rook_attacks_bb(king,occupied,occupied_rl90) & rooks) ) return true;
+	//if((rook_attacks_bb(king,occupied,occupied_rl90) & rooks) ) return true;
+	if ((rook_attacks_bb(king, occupied) & rooks)) return true;
 	//if((knight_attacks_from(king, occupied,occupied_rl90) & knights) ) return true;
 	if ((knight_attacks_from(king, occupied) & knights)) return true;
-	if((cannon_control_bb(king, occupied,occupied_rl90) & cannons)) return true;	
+	//if((cannon_control_bb(king, occupied,occupied_rl90) & cannons)) return true;
+	if ((cannon_control_bb(king, occupied) & cannons)) return true;
 	if((pawn_attacks_from(opp, king) & pawns) ) return true;
-    if((rook_attacks_bb(king,occupied,occupied_rl90) & king_square(opp)) ) return true;
+    //if((rook_attacks_bb(king,occupied,occupied_rl90) & king_square(opp)) ) return true;
+	if ((rook_attacks_bb(king, occupied) & king_square(opp))) return true;
 
 	return false;
 }

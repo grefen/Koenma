@@ -9,7 +9,7 @@
 #include "data.h"
 #include "position.h"
 
-
+void test_mask();
 void test_bitboard(FILE *fp);
 void test_initdata(FILE *fp);
 void test_position(FILE *fp);
@@ -23,13 +23,24 @@ void test_main(){
 	//test_initdata(fp);
 	//test_position(fp);
 
+	//test_mask();
+
 	test_perft();
 
 	//fclose(fp);
 
-	getchar();
+	//getchar();
 }
+void test_mask() {
 
+	for (int i = 0; i <= 9; ++i) {
+		//RookAttackMask[i].print();
+		//FileBB[i].print();
+		printf("------------------------------");
+	}
+	
+
+}
 void test_bitboard(FILE *fp)
 {
 	Bitboard board1(0x0,0x1);
