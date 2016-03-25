@@ -679,6 +679,7 @@ void init_magics(Bitboard table[], Bitboard* attacks[], uint96_t magics[], Bitbo
 		// store the corresponding sliding attack bitboard in reference[].
 		//b = size = 0;
 		size = 0;
+		b = Bitboard();
 		//do {
 		//	occupancy[size] = b;
 		//	reference[size] = sliding_attack(deltas, s, b);
