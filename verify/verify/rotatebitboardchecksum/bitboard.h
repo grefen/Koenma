@@ -374,5 +374,25 @@ public:
 		fprintf(fp,"\n");
 	}
 
+	void print() {
+		printf("\n");
+
+		for (int i = 0; i < 32; ++i) {
+			if (bb[0] & (0x1ULL << (31 - i))) printf("1");
+			else  printf("0");
+		}
+		printf("\n");
+		for (int i = 0; i < 32; ++i) {
+			if (bb[1] & (0x1ULL << (31 - i))) printf("1");
+			else  printf("0");
+		}
+		printf("\n");
+		for (int i = 0; i < 32; ++i) {
+			if (bb[2] & (0x1ULL << (31 - i))) printf("1");
+			else  printf("0");
+		}
+
+		printf("\n");
+	}
 };
 #endif

@@ -13,11 +13,12 @@
 void test_bitboard(FILE *fp);
 void test_initdata(FILE *fp);
 void test_position(FILE *fp);
+void test_mask();
 void test_perft();
 
 void test_main(){
 
-	FILE *fp = fopen("test_biboard.txt","wb");
+	//FILE *fp = fopen("test_biboard.txt","wb");
 
     //test_bitboard(fp);
 	//test_initdata(fp);
@@ -25,11 +26,17 @@ void test_main(){
 
 	test_perft();
 
-	fclose(fp);
+	//test_mask();
+
+	//fclose(fp);
 
 	getchar();
 }
-
+void test_mask() {
+	for (int i = 0; i < 90; ++i) {
+		//RookAttackMask[i].print();
+	}
+}
 void test_bitboard(FILE *fp)
 {
 	Bitboard board1(0x0,0x0,0x1);
