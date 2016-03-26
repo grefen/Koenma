@@ -10,9 +10,6 @@ uint64_t do_perft(Position& pos, int depth);
 int main() {
 	printf("imagic bitboard 64bit + evasion use 2.5s for 5 depth perft\n");
 	init_data();
-
-	setvbuf(stdin, NULL, _IONBF, 0);
-	setvbuf(stdout, NULL, _IONBF, 0);
 	do
 	{
 		printf("please input perft depth(0~4):\n");

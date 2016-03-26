@@ -117,6 +117,7 @@
     <ClInclude Include="bitboard.h" />
     <ClInclude Include="bitcount.h" />
     <ClInclude Include="data.h" />
+    <ClInclude Include="imagics.h" />
     <ClInclude Include="movegen.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="position.h" />

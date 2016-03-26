@@ -9,6 +9,7 @@
     <ClInclude Include="data.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="movegen.h" />
+    <ClInclude Include="imagics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

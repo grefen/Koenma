@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 
 typedef   signed __int8    int8_t;
 typedef unsigned __int8   uint8_t;

@@ -3,6 +3,8 @@
 #include "data.h"
 #include "rkiss.h"
 #include "bitcount.h"
+#include <fstream>
+#include "imagics.h"
 
 CACHE_LINE_ALIGNMENT
 
@@ -86,8 +88,28 @@ void init_knight_maigcs(Bitboard attack[SQUARE_NB][16],
 	IndexFn index,
 	KAttackFun attackfun
 	);
-
 void init_bishop_magics();
+
+void init_slider_magics(Bitboard table[],
+	Bitboard* attacks[],
+	Bitboard magics[],
+	Bitboard masks[],
+	unsigned shifts[],
+	Square deltas[],
+	IndexFn index,
+	AttackFun attackfun,
+	Bitboard magicsdata[],
+	unsigned shiftsdata[]);
+
+void init_knight_maigcs(Bitboard attack[SQUARE_NB][16],
+	Bitboard legoreye[SQUARE_NB],
+	uint64_t imagic[SQUARE_NB],
+	IndexFn index,
+	KAttackFun attackfun,
+	uint64_t magicsdata[]
+	);
+
+void init_bishop_magics(uint64_t magicsdata[]);
 
 uint32_t pop_count(const Bitboard& b)
 {
@@ -547,6 +569,17 @@ void init_data() {
 					BetweenBB[s1][s2] |= s;
 			}
 
+
+	init_slider_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, slider_magic_index<ROOK>, sliding_attack, RookMagicsData, RookShiftsData);
+	init_slider_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, slider_magic_index<CANNON>, cannon_sliding_control, CannonMagicsData, CannonShiftsData);
+	init_slider_magics(SuperCannonTable, SuperCannonAttacks, SuperCannonMagics, SuperCannonMasks, SuperCannonShifts, RDeltas, supercannon_magic_index, supercannon_sliding_control, SuperCannonMagicsData, SuperCannonShiftsData);
+
+	init_knight_maigcs(KnightImagicAttackTo, KnightLeg, KnightLegImagic, knight_imagic_index<KNIGHT_LEG>, knight_attack_to, KnightLegMagicsData);
+	init_knight_maigcs(KnightImagicAttackFrom, KnightEye, KnightEyeImagic, knight_imagic_index<KNIGHT_EYE>, knight_attack_from, KnightEyeMagicsData);
+
+	init_bishop_magics(BishopLegMagicsData);
+
+#if 0
 	//init imagics
 	init_slider_magics(RookTable, RAttacks, RMagics, RMasks, RShifts, RDeltas, slider_magic_index<ROOK>, sliding_attack);
 	init_slider_magics(CannonTable, CannonAttacks, CannonMagics, CannonMasks, CannonShifts, RDeltas, slider_magic_index<CANNON>, cannon_sliding_control);
@@ -556,6 +589,76 @@ void init_data() {
 	init_knight_maigcs(KnightImagicAttackFrom,KnightEye,KnightEyeImagic,knight_imagic_index<KNIGHT_EYE>,knight_attack_from);
 
 	init_bishop_magics();
+
+    //write to text
+	using namespace std;
+	fstream fmagics("imagics.h", ios::trunc | ios::out);
+
+	fmagics << "#ifndef IMAGICS_H\n";
+	fmagics << "#define IMAGICS_H\n";
+	fmagics << "#include\"platform.h\"\n";
+
+	//rook
+	fmagics << "Bitboard RookMagicsData[90]={\n"; 
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << "{" << RMagics[s].bb[0] << ", " << RMagics[s].bb[1] << "}," << "\n";
+	}
+	fmagics << "};\n";
+
+	fmagics << "unsigned RookShiftsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << RShifts[s]<< ",\n";
+	}
+	fmagics << "};\n";
+	//cannon
+	fmagics << "Bitboard CannonMagicsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << "{" << CannonMagics[s].bb[0] << ", " << CannonMagics[s].bb[1] << "}," << "\n";
+	}
+	fmagics << "};\n";
+
+	fmagics << "unsigned CannonShiftsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << CannonShifts[s] << ",\n";
+	}
+	fmagics << "};\n";
+
+	//supercannon
+	fmagics << "Bitboard SuperCannonMagicsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << "{" << SuperCannonMagics[s].bb[0] << ", " << SuperCannonMagics[s].bb[1] << "}," << "\n";
+	}
+	fmagics << "};\n";
+
+	fmagics << "unsigned SuperCannonShiftsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << SuperCannonShifts[s] << ",\n";
+	}
+	fmagics << "};\n";
+
+	//knight
+	fmagics << "uint64_t KnightLegMagicsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << KnightLegImagic[s] << ",\n";
+	}
+	fmagics << "};\n";
+
+	fmagics << "uint64_t KnightEyeMagicsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << KnightEyeImagic[s] << ",\n";
+	}
+	fmagics << "};\n";
+
+	//bishop
+	fmagics << "uint64_t BishopLegMagicsData[90]={\n";
+	for (Square s = SQ_A0; s <= SQ_I9; ++s) {
+		fmagics << showbase << hex << BishopLegImagic[s] << ",\n";
+	}
+	fmagics << "};\n";
+
+	fmagics << "#endif";
+
+#endif
 }
 
 // init_magics() computes all rook and cannon attacks at startup. Magic
@@ -577,7 +680,6 @@ void init_slider_magics(Bitboard table[],
 	RKISS rk;
 	Bitboard occupancy[1 << 15], reference[1 << 15], edges, b;
 	int i, size, booster;
-
 
 	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
 	attacks[SQ_A0] = table;
@@ -654,7 +756,11 @@ void init_slider_magics(Bitboard table[],
 
 		} while (i < size);
 		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, magics[s].bb[0], magics[s].bb[1], size);
+
+		
 	}
+
+	
 }
 
 void init_knight_maigcs(Bitboard attacktable[SQUARE_NB][16],
@@ -671,6 +777,7 @@ void init_knight_maigcs(Bitboard attacktable[SQUARE_NB][16],
 	RKISS rk;
 	Bitboard occupancy[1 << 4], reference[1 << 4], edges, b;
 	int i, size, booster;
+
 
 	for (Square s = SQ_A0; s <= SQ_I9; ++s)
 	{
@@ -718,8 +825,10 @@ void init_knight_maigcs(Bitboard attacktable[SQUARE_NB][16],
 		} while (i < size);
 
 		printf("sq:%d,imagic:0x%llX,  size: %d\n", s, imagic[s], size);
-	}
 
+		
+	}
+	
 }
 
 void init_bishop_magics() {
@@ -730,10 +839,14 @@ void init_bishop_magics() {
 	Bitboard occupancy[1 << 4], reference[1 << 4], edges, b;
 	int i, size, booster;
 
+
 	for (Square s = SQ_A0; s <= SQ_I9; ++s)
 	{
 		//s不在相应该在的位置上
-		if ( !bishop_in_city(s)) continue;
+		if (!bishop_in_city(s)) {
+			
+			continue;
+		}
 
 		size = 0;
 		b = Bitboard();
@@ -778,6 +891,164 @@ void init_bishop_magics() {
 
 		} while (i < size);
 
+		printf("sq:%d,imagic:0x%llX,  size: %d\n", s, BishopLegImagic[s], size);
+
+		
+	}
+	
+}
+
+void init_slider_magics(Bitboard table[],
+	Bitboard* attacks[],
+	Bitboard magics[],
+	Bitboard masks[],
+	unsigned shifts[],
+	Square deltas[],
+	IndexFn index,
+	AttackFun attackfun,
+	Bitboard magicsdata[],
+	unsigned datashifts[]) {
+
+	Bitboard occupancy[1 << 15], reference[1 << 15], edges, b;
+	int i, size;
+
+	// attacks[s] is a pointer to the beginning of the attacks table for square 's'
+	attacks[SQ_A0] = table;
+
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
+	{
+		// Board edges are not considered in the relevant occupancies
+		edges = ((Rank0BB | Rank9BB) & ~rank_bb(s)) | ((FileABB | FileIBB) & ~file_bb(s));
+
+		masks[s] = sliding_attack(deltas, s, Bitboard()) & ~edges;
+		shifts[s] = 64 - pop_count(masks[s]);
+
+		size = 0;
+		b = Bitboard();
+		do
+		{
+			do
+			{
+				occupancy[size] = b;
+				reference[size] = attackfun(deltas, s, b);
+
+				size++;
+
+				b.bb[0] = (b.bb[0] - masks[s].bb[0])&masks[s].bb[0];
+
+			} while (b.bb[0]);
+			b.bb[1] = (b.bb[1] - masks[s].bb[1])&masks[s].bb[1];
+
+		} while (b.bb[1]);
+
+		if (s < SQ_I9)
+			attacks[s + 1] = attacks[s] + size;
+
+		if (shifts[s] != datashifts[s]) {
+			printf("sq%d shift error\n",s);
+		}
+
+		do {
+
+			magics[s] = magicsdata[s];
+
+			std::memset(attacks[s], 0, size * sizeof(Bitboard));
+
+			for (i = 0; i < size; ++i)
+			{
+				Bitboard& attack = attacks[s][index(s, occupancy[i])];
+
+				if (attack && attack != reference[i])
+					break;
+
+				attack = reference[i];
+			}
+
+		} while (i < size);
+		printf("sq:%d,bb0:0x%llX,bb1:0x%llX  size: %d\n", s, magics[s].bb[0], magics[s].bb[1], size);
+
+	}
+}
+void init_knight_maigcs(Bitboard attacktable[SQUARE_NB][16],
+	Bitboard legoreye[SQUARE_NB],
+	uint64_t imagic[SQUARE_NB],
+	IndexFn index,
+	KAttackFun attackfun,
+	uint64_t magicsdata[]	
+	)
+{ 
+	Bitboard occupancy[1 << 4], reference[1 << 4], edges, b;
+	int i, size, booster;
+
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
+	{
+		size = 0;
+		b = Bitboard();		
+		do
+		{	do
+			{
+				occupancy[size] = b;
+				reference[size] = attackfun(s, b);
+				size++;
+				b.bb[0] = (b.bb[0] - legoreye[s].bb[0])&legoreye[s].bb[0];
+			} while (b.bb[0]);
+			b.bb[1] = (b.bb[1] - legoreye[s].bb[1])&legoreye[s].bb[1];
+
+		} while (b.bb[1]);		
+
+		do {
+			imagic[s] = magicsdata[s];
+			std::memset(attacktable[s], 0, size * sizeof(Bitboard));
+
+			for (i = 0; i < size; ++i)
+			{
+				Bitboard& attack = attacktable[s][index(s, occupancy[i])];
+				if (attack && attack != reference[i])
+					break;
+				attack = reference[i];
+			}
+
+		} while (i < size);
+		printf("sq:%d,imagic:0x%llX,  size: %d\n", s, imagic[s], size);
+	}
+}
+void init_bishop_magics(uint64_t magicsdata[]) {
+
+	Bitboard occupancy[1 << 4], reference[1 << 4], b;
+	int i, size, booster;
+
+	for (Square s = SQ_A0; s <= SQ_I9; ++s)
+	{
+		//s不在相应该在的位置上
+		if (!bishop_in_city(s)) {
+			continue;
+		}
+		size = 0;
+		b = Bitboard();		
+		do
+		{
+			do
+			{
+				occupancy[size] = b;
+				reference[size] = bishop_attack_to(s, b);
+				size++;
+				b.bb[0] = (b.bb[0] - BishopLeg[s].bb[0])&BishopLeg[s].bb[0];
+			} while (b.bb[0]);
+			b.bb[1] = (b.bb[1] - BishopLeg[s].bb[1])&BishopLeg[s].bb[1];
+
+		} while (b.bb[1]);	
+
+		do {
+			BishopLegImagic[s] = magicsdata[s];
+			std::memset(BishopImagicAttack[s], 0, size * sizeof(Bitboard));
+			for (i = 0; i < size; ++i)
+			{
+				Bitboard& attack = BishopImagicAttack[s][bishop_imagic_index(s, occupancy[i])];
+ 				if (attack && attack != reference[i])
+					break;
+				attack = reference[i];
+			}
+		} while (i < size);
 		printf("sq:%d,imagic:0x%llX,  size: %d\n", s, BishopLegImagic[s], size);
 	}
 }
