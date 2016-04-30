@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rotate64bitboardchecksum_ev
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImagicBitboard64Evasion", "ImagicBitboard64Evasion\ImagicBitboard64Evasion.vcxproj", "{2A7A370C-DC79-46B5-924E-13971FFF0444}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "other", "other\other.vcxproj", "{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -101,6 +103,14 @@ Global
 		{2A7A370C-DC79-46B5-924E-13971FFF0444}.Release|Win32.Build.0 = Release|Win32
 		{2A7A370C-DC79-46B5-924E-13971FFF0444}.Release|x64.ActiveCfg = Release|x64
 		{2A7A370C-DC79-46B5-924E-13971FFF0444}.Release|x64.Build.0 = Release|x64
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Debug|Win32.Build.0 = Debug|Win32
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Debug|x64.ActiveCfg = Debug|x64
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Debug|x64.Build.0 = Debug|x64
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Release|Win32.ActiveCfg = Release|Win32
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Release|Win32.Build.0 = Release|Win32
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Release|x64.ActiveCfg = Release|x64
+		{8C75536B-BA5D-4305-A3D4-B9A7FEAFF682}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

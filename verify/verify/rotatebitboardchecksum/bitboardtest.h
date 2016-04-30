@@ -169,13 +169,14 @@ void test_position(FILE *fp)
 uint64_t do_perft(Position& pos, int depth);
 void test_perft()
 {
+	int depth = 0;
 	do 
 	{
-		printf("please input perft depth(0~4):\n");
+		//printf("please input perft depth(0~4):\n");
 
-		char d[2] = {0};
-		d[0] = getchar();
-        int depth = atoi(d);
+		//char d[2] = {0};
+		//d[0] = getchar();
+        //int depth = atoi(d);
 		
 		
 		std::string StartFen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1";
@@ -187,6 +188,9 @@ void test_perft()
 		uint64_t total = do_perft(pos, depth);
 
 		printf("nodes: %I64d, time:  %d\n\n",total, clock()-t);
+
+		depth++;
+		system("pause");
 
 	} while (true);
 
